@@ -16,8 +16,5 @@ This plugin requires Moodle 3.3+ or Moodle 3.4+
 Install this plugin in the normal way via Administration > Site Administration > Plugins > Install Plugins.
 Drag and drop the zipped folder (or browse to it), select 'Site report (report)' as the plugin type and click 'Install plugin from the ZIP file'
 
-Or
-
-Copy the zip file to the reports directory within your Moodle installation using FTP and unzip the folder. As admin on your Moodle site visit Site Administration > Notifications
 # To access the report:
 Moodle admins and Managers set at a system level can access the reporting tool by navigating to Site administration > reports > Course Completion Report 
