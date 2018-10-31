@@ -23,6 +23,7 @@
  */
 
 $string['pluginname'] = 'Course completion overview';
+$string['privacy:metadata'] = 'The Course completion overview report only shows data stored in other locations.';
 $string['countnocompletions'] = 'Courses where completion tracking is not enabled';
 $string['countcompletions'] = 'Courses where completion tracking is enabled';
 $string['completionsoverview'] = 'Courses Completion Overview';
@@ -40,4 +41,3 @@ $string['showbutton'] = 'Show courses';
 $string['noenrolments'] = 'Completion tracking is enabled but no students are enrolled on this course.';
 $string['nomodules'] = 'Completion tracking is enabled but no modules have been configured to track completion.';
 $string['courselink'] = 'view';
-
