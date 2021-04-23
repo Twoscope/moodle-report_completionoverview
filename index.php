@@ -21,9 +21,8 @@
  * @copyright 2017 Jim Harris <jim.harris@twoscope.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require(__DIR__ . '/../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 // Get our initial params.
 $courseid = optional_param('id', 0, PARAM_INT);
@@ -79,7 +78,7 @@ echo $OUTPUT->header();
 
 echo html_writer::start_tag('div', array('class' => 'span9 well'));
 echo html_writer::start_tag('p');
-echo ($nocompletioncount.' '.get_string('countnocompletions', 'report_completionoverview'));
+echo ($nocompletioncount . ' ' . get_string('countnocompletions', 'report_completionoverview'));
 echo html_writer::end_tag('p');
 // This is the table which displays the courses without completion.
 $table = new html_table();
@@ -87,7 +86,7 @@ $table->width = '*';
 $table->align = array('left', 'left', 'left', 'left', 'left', 'left');
 foreach ($compcoursename as $row) {
     $a = array();
-    $a[] = '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$row->id.'">'.$row->fname.'</a>';
+    $a[] = '<a href="' . $CFG->wwwroot . '/course/view.php?id=' . $row->id . '">' . $row->fname . '</a>';
     $table->data[] = $a;
 }
 echo html_writer::table($table);
@@ -97,8 +96,8 @@ echo $OUTPUT->paging_bar($nocompletioncount, $page, $perpage, $baseurl);
 echo html_writer::end_tag('div'); // End span 9 well.
 echo html_writer::start_tag('div', array('class' => 'span9 well'));
 echo html_writer::start_tag('p');
-echo (get_string('completionsoverview', 'report_completionoverview') .' - ');
-echo ($completioncount.' '.get_string('countcompletions', 'report_completionoverview'));
+echo (get_string('completionsoverview', 'report_completionoverview') . ' - ');
+echo ($completioncount . ' ' . get_string('countcompletions', 'report_completionoverview'));
 echo html_writer::end_tag('p');
 
 // This is the table which shows our list of courses tracking completion.
@@ -106,13 +105,13 @@ $table = new html_table();
 $table->width = '*';
 $table->align = array('left', 'left', 'left', 'left', 'left', 'left');
 $table->head = array(get_string('tablehead1', 'report_completionoverview'),
-get_string('tablehead2', 'report_completionoverview'), get_string('tablehead3', 'report_completionoverview'),
-get_string('tablehead4', 'report_completionoverview'));
+    get_string('tablehead2', 'report_completionoverview'), get_string('tablehead3', 'report_completionoverview'),
+    get_string('tablehead4', 'report_completionoverview'));
 
 foreach ($compdata as $row) {
     $notcompleted = $row->enrols - $row->completed;
     $a = array();
-    $a[] = '<a target="_new" href="'.$CFG->wwwroot.'/course/view.php?id='.$row->courseid.'">'.$row->coursename.'</a>';
+    $a[] = '<a target="_new" href="' . $CFG->wwwroot . '/course/view.php?id=' . $row->courseid . '">' . $row->coursename . '</a>';
     $a[] = $row->enrols;
     $a[] = $row->completed;
     $a[] = $notcompleted;
@@ -134,7 +133,7 @@ $coursemenu = html_writer::label('Select course', 'menureport', false, array('cl
 $coursemenu .= html_writer::select($result, 'id', $result);
 
 $table->data[] = array(get_string('selecttext', 'report_completionoverview'), $coursemenu,
-                       html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('view'))));
+    html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('view'))));
 
 echo html_writer::table($table);
 echo html_writer::end_tag('div');
@@ -149,16 +148,17 @@ if (!empty($result) && $courseid != 0) {
                           u.email,
                           cc.timecompleted,
                           cc.timestarted,
-                          gg.finalgrade
+                          gg.finalgrade,
+                          gg.itemid 
                           FROM {user} u
                           INNER JOIN {role_assignments} ra ON ra.userid = u.id
                           INNER JOIN {context} ct ON ct.id = ra.contextid
                           INNER JOIN {course} c ON c.id = ct.instanceid
-                          AND c.enablecompletion = '1' AND c.id = ".$courseid."
+                          AND c.enablecompletion = '1' AND c.id = " . $courseid . "
                           INNER JOIN {role} r ON r.id = ra.roleid and r.id = 5
                           LEFT OUTER JOIN {course_completions} cc ON (cc.course = c.id) AND cc.userid = u.id
                           LEFT JOIN
-                          (SELECT u.id AS userid,c.id as courseid, g.finalgrade AS finalgrade
+                          (SELECT u.id AS userid,c.id as courseid, g.finalgrade AS finalgrade, gi.id as itemid
                           FROM {user} u
                           JOIN {grade_grades} g ON g.userid = u.id
                           JOIN {grade_items} gi ON g.itemid =  gi.id
@@ -172,31 +172,66 @@ if (!empty($result) && $courseid != 0) {
     $table = new html_table();
     $table->width = '*';
     $table->align = array('left', 'left', 'left', 'left', 'left', 'left');
-    $table->head  = array(get_string('coursetablehead1', 'report_completionoverview'),
-                          get_string('coursetablehead5', 'report_completionoverview'),
-                          get_string('coursetablehead2', 'report_completionoverview'),
-                          get_string('coursetablehead4', 'report_completionoverview'),
-                          get_string('coursetablehead3', 'report_completionoverview'));
+    $table->head = array(get_string('coursetablehead1', 'report_completionoverview'),
+        get_string('coursetablehead5', 'report_completionoverview'),
+        get_string('coursetablehead2', 'report_completionoverview'),
+        get_string('coursetablehead4', 'report_completionoverview'),
+        get_string('coursetablehead3', 'report_completionoverview'));
 
     foreach ($compdatacourse as $row) {
+        $gradeitem = new grade_item(array('id' => $row->itemid, 'courseid' => $row->courseid));
+        $grade = $gradeitem->get_grade($row->userid);
+        $decimalpoints = $gradeitem->get_decimals();
+
+        if ($gradeitem->scaleid && $scale = $DB->get_record('scale', array('id' => $gradeitem->scaleid))) {
+            $gradeval = (int) $grade->finalgrade; // scales use only integers
+            $scales = explode(",", $scale->scale);
+            // reindex because scale is off 1
+            // MDL-12104 some previous scales might have taken up part of the array
+            // so this needs to be reset
+            $scaleopt = array();
+            $i = 0;
+            foreach ($scales as $scaleoption) {
+                $i++;
+                $scaleopt[$i] = $scaleoption;
+            }
+
+            if (!empty($scale)) {
+                $scales = explode(",", $scale->scale);
+
+                // invalid grade if gradeval < 1
+                if ($gradeval < 1) {
+                    $finalgrade = "<span class='gradevalue{$gradepass}'>-</span>";
+                } else {
+                    $gradeval = $gradeitem->bounded_grade($gradeval); //just in case somebody changes scale
+                    $finalgrade = "<span class='gradevalue{$gradepass}'>{$scales[$gradeval - 1]}</span>";
+                }
+            }
+        } else if ($item->gradetype != GRADE_TYPE_TEXT) { // Value type
+            $finalgrade = "<span class='gradevalue{$gradepass}'>" .
+                    format_float($gradeval, $decimalpoints) . "</span>";
+        }else{
+            $finalgrade = $row->finalgrade;
+        }
+
         $a = array();
-        $a[] = $row->firstname .= ' '.$row->lastname;
+        $a[] = $row->firstname .= ' ' . $row->lastname;
         $a[] = $row->email;
         $a[] = ($row->timestarted ? date('jS F Y H:i:s', ($row->timestarted)) : 'Not started');
         $a[] = ($row->timecompleted ? date('jS F Y H:i:s', ($row->timecompleted)) : 'Not completed');
-        $a[] = ($row->finalgrade ? $row->finalgrade : 'No grade');
+        $a[] = ($row->finalgrade ? $finalgrade : '-');
         $table->data[] = $a;
     }
 
     // It's possible completion tracking is enabled but there are no enrolled students.
     // Our data set will be empty, so catch this and inform user.
     if (!empty($compdatacourse)) {
-        echo $OUTPUT->heading($row->fullname.' - <a target="_new" href="'.$CFG->wwwroot.'/course/view.php?id='.$row->courseid.'">'
-        .get_string("courselink", "report_completionoverview").'</a>');
+        echo $OUTPUT->heading($row->fullname . ' - <a target="_new" href="' . $CFG->wwwroot . '/course/view.php?id=' . $row->courseid . '">'
+                . get_string("courselink", "report_completionoverview") . '</a>');
     } else {
-        echo $OUTPUT->heading($result[$courseid].' - <a target="_new" href="'.$CFG->wwwroot.'/course/view.php?id='.$courseid.'">'
-        .get_string("courselink", "report_completionoverview").'</a>');
-        echo (get_string('noenrolments', 'report_completionoverview'). '<br /><br />');
+        echo $OUTPUT->heading($result[$courseid] . ' - <a target="_new" href="' . $CFG->wwwroot . '/course/view.php?id=' . $courseid . '">'
+                . get_string("courselink", "report_completionoverview") . '</a>');
+        echo (get_string('noenrolments', 'report_completionoverview') . '<br /><br />');
     }
     // Here we've modified code from report/completion written by Aaron Barnes <aaronb@catalyst.net.nz>.
     $courseobject = $DB->get_record('course', array('id' => $courseid));
@@ -211,7 +246,7 @@ if (!empty($result) && $courseid != 0) {
     }
     foreach ($completion->get_criteria() as $criterion) {
         if (!in_array($criterion->criteriatype, array(
-            COMPLETION_CRITERIA_TYPE_COURSE, COMPLETION_CRITERIA_TYPE_ACTIVITY))) {
+                    COMPLETION_CRITERIA_TYPE_COURSE, COMPLETION_CRITERIA_TYPE_ACTIVITY))) {
             $criteria[] = $criterion;
         }
     }
@@ -219,8 +254,8 @@ if (!empty($result) && $courseid != 0) {
     // Get the completion criteria names.
     $critname = array();
     foreach ($criteria as $criterion) {
-            // Get criteria details.
-            $critname[] = $criterion->get_title_detailed();
+        // Get criteria details.
+        $critname[] = $criterion->get_title_detailed();
     }
 
     // Get user data.
@@ -238,16 +273,16 @@ if (!empty($result) && $courseid != 0) {
     $modulecount = '0';
     foreach ($critname as $crit) {
         echo('<th class="colheader criterianame">
-        <div class="rotated-text-container"><span class="rotated-text">'.$crit.'</span></div></th>');
+        <div class="rotated-text-container"><span class="rotated-text">' . $crit . '</span></div></th>');
         $modulecount++;
     }
     if ($modulecount == 0) {
-        echo(get_string('nomodules', 'report_completionoverview'). '<br /><br />');
+        echo(get_string('nomodules', 'report_completionoverview') . '<br /><br />');
     }
 
     print '<th scope="col" class="colheader criterianame">';
     print '<div class="rotated-text-container">
-           <span class="rotated-text">'.get_string('coursecomplete', 'completion').'</span></div>';
+           <span class="rotated-text">' . get_string('coursecomplete', 'completion') . '</span></div>';
     print '</th></tr>';
     echo('<tr><th>Student</th>');
 
@@ -261,7 +296,7 @@ if (!empty($result) && $courseid != 0) {
             case COMPLETION_CRITERIA_TYPE_ACTIVITY:
 
                 // Display icon.
-                $iconlink = $CFG->wwwroot.'/mod/'.$criterion->module.'/view.php?id='.$criterion->moduleinstance;
+                $iconlink = $CFG->wwwroot . '/mod/' . $criterion->module . '/view.php?id=' . $criterion->moduleinstance;
                 $iconattributes['title'] = $modinfo->cms[$criterion->moduleinstance]->get_formatted_name();
                 $iconalt = get_string('modulename', $criterion->module);
                 break;
@@ -271,11 +306,11 @@ if (!empty($result) && $courseid != 0) {
                 $crs = $DB->get_record('course', array('id' => $criterion->courseinstance));
 
                 // Display icon.
-                $iconlink = $CFG->wwwroot.'/course/view.php?id='.$criterion->courseinstance;
+                $iconlink = $CFG->wwwroot . '/course/view.php?id=' . $criterion->courseinstance;
                 $iconattributes['title'] = format_string(
-                $crs->fullname, true, array('context' => context_course::instance($crs->id, MUST_EXIST)));
+                        $crs->fullname, true, array('context' => context_course::instance($crs->id, MUST_EXIST)));
                 $iconalt = format_string($crs->shortname, true, array(
-                'context' => context_course::instance($crs->id)));
+                    'context' => context_course::instance($crs->id)));
                 break;
 
             case COMPLETION_CRITERIA_TYPE_ROLE:
@@ -294,10 +329,10 @@ if (!empty($result) && $courseid != 0) {
 
         // Print icon and cell.
         print '<th class="criteriaicon">';
-            print ($iconlink ? '<a href="'.$iconlink.'" title="'.$iconattributes['title'].'">' : '');
-            print $OUTPUT->render($criterion->get_icon($iconalt, $iconattributes));
-            print ($iconlink ? '</a>' : '');
-            print '</th>';
+        print ($iconlink ? '<a href="' . $iconlink . '" title="' . $iconattributes['title'] . '">' : '');
+        print $OUTPUT->render($criterion->get_icon($iconalt, $iconattributes));
+        print ($iconlink ? '</a>' : '');
+        print '</th>';
     }
 
     // Overall course completion status.
@@ -311,7 +346,7 @@ if (!empty($result) && $courseid != 0) {
         foreach ($compdatacourse as $row) {
             if ($user->id == $row->userid) {
                 // User name.
-                echo('<tr><td>'.fullname($user).'</td>');
+                echo('<tr><td>' . fullname($user) . '</td>');
                 foreach ($criteria as $criterion) {
                     $criteria_completion = $completion->get_user_completion($user->id, $criterion);
                     $is_complete = $criteria_completion->is_complete();
@@ -322,7 +357,7 @@ if (!empty($result) && $courseid != 0) {
                         // Load activity.
                         $activity = $modinfo->cms[$criterion->moduleinstance];
 
-                            // Get progress information and state.
+                        // Get progress information and state.
                         if (array_key_exists($activity->id, $user->progress)) {
                             $state = $user->progress[$activity->id]->completionstate;
                         } else if ($is_complete) {
@@ -332,31 +367,31 @@ if (!empty($result) && $courseid != 0) {
                         }
                         if ($is_complete) {
                             $date = userdate($criteria_completion->timecompleted,
-                            get_string('strftimedatetimeshort', 'langconfig'));
+                                    get_string('strftimedatetimeshort', 'langconfig'));
                         } else {
                             $date = '';
                         }
 
                         // Work out how it corresponds to an icon.
-                        switch($state) {
-                            case COMPLETION_INCOMPLETE    : $completiontype = 'n';
-                            break;
-                            case COMPLETION_COMPLETE      : $completiontype = 'y';
-                            break;
+                        switch ($state) {
+                            case COMPLETION_INCOMPLETE : $completiontype = 'n';
+                                break;
+                            case COMPLETION_COMPLETE : $completiontype = 'y';
+                                break;
                             case COMPLETION_COMPLETE_PASS : $completiontype = 'pass';
-                            break;
+                                break;
                             case COMPLETION_COMPLETE_FAIL : $completiontype = 'fail';
-                            break;
+                                break;
                         }
 
                         $auto = $activity->completion == COMPLETION_TRACKING_AUTOMATIC;
-                        $completionicon = 'completion-'.($auto ? 'auto' : 'manual').'-'.$completiontype;
-                        $describe = get_string('completion-'.$completiontype, 'completion');
+                        $completionicon = 'completion-' . ($auto ? 'auto' : 'manual') . '-' . $completiontype;
+                        $describe = get_string('completion-' . $completiontype, 'completion');
                         $a = new StdClass();
-                        $a->state     = $describe;
-                        $a->date      = $date;
-                        $a->user      = fullname($user);
-                        $a->activity  = $activity->get_formatted_name();
+                        $a->state = $describe;
+                        $a->date = $date;
+                        $a->user = fullname($user);
+                        $a->activity = $activity->get_formatted_name();
                         $fulldescribe = get_string('progress-title', 'completion', $a);
 
                         print '<td class="completion-progresscell">';
@@ -367,13 +402,13 @@ if (!empty($result) && $courseid != 0) {
                 }
                 // Load course completion.
                 $params = array(
-                    'userid'    => $user->id,
-                    'course'    => $courseid
+                    'userid' => $user->id,
+                    'course' => $courseid
                 );
 
                 $ccompletion = new completion_completion($params);
                 $completiontype = $ccompletion->is_complete() ? 'y' : 'n';
-                $describe = get_string('completion-'.$completiontype, 'completion');
+                $describe = get_string('completion-' . $completiontype, 'completion');
 
                 $a = new StdClass;
                 if ($ccompletion->is_complete()) {
@@ -381,8 +416,8 @@ if (!empty($result) && $courseid != 0) {
                 } else {
                     $a->date = '';
                 }
-                $a->state    = $describe;
-                $a->user     = fullname($user);
+                $a->state = $describe;
+                $a->user = fullname($user);
                 $a->activity = strip_tags(get_string('coursecomplete', 'completion'));
                 $fulldescribe = get_string('progress-title', 'completion', $a);
 
